@@ -1,81 +1,33 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>인사고과 체험판</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-  <meta name="theme-color" content="#ffffff">
-  <meta name="apple-mobile-web-app-title" content="인사고과">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <style>
-    html, body { margin: 0; height: 100%; background: #f5f5f2; color: #1f2328;
-      font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
-    #views { position: fixed; inset: 0; }
-    #views iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #f5f5f2; }
-    #views iframe.pending { visibility: hidden; }
-    #busy { position: fixed; top: 0; left: 0; z-index: 30; height: 3px; width: 0; background: #1c5cab; opacity: 0; }
-    #busy.on { opacity: 1; width: 80%; transition: width 4s cubic-bezier(.1, .7, .2, 1); }
-    #splash { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 14px; padding: 24px; text-align: center; background: #f5f5f2;
-      word-break: keep-all; overflow-wrap: break-word; }  /* 한국어를 낱말 단위로 줄 바꿈 */
-    #splash[hidden] { display: none; }
-    #splash img { width: 72px; height: 72px; }
-    #splash .title { font-size: 18px; font-weight: 700; }
-    #status { font-size: 14px; color: #57606a; min-height: 20px; }
-    #splash.error #status { color: #b42318; }
-    .bar { width: min(260px, 70vw); height: 6px; border-radius: 3px; background: #dfe3e8; overflow: hidden; }
-    .bar span { display: block; height: 100%; width: 0; background: #1c5cab; transition: width .3s; }
-    .note { font-size: 12.5px; color: #57606a; max-width: 300px; line-height: 1.5; }
-    button { font: inherit; font-size: 14px; padding: 8px 16px; border-radius: 6px; border: 1px solid #1c5cab;
-      background: #1c5cab; color: #fff; }
-    #update { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 25; display: flex; align-items: center;
-      justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 8px; background: #1f2328;
-      color: #fff; font-size: 14px; box-shadow: 0 4px 16px rgba(0, 0, 0, .2); }
-    #update[hidden] { display: none; }
-    #update button { background: #fff; color: #1f2328; border-color: #fff; padding: 6px 12px; }
-    /* 아이폰 Safari로 처음 열었을 때: 앱 파일을 받기 전에 홈 화면에 추가하라는 안내 (shell.js) */
-    #splash.guide { justify-content: flex-start; padding-top: 40px; overflow-y: auto; }
-    #splash.guide #status, #splash.guide .bar, #splash.guide > .note { display: none; }
-    #install-guide { max-width: 320px; text-align: left; font-size: 15px; line-height: 1.6; }
-    #install-guide[hidden] { display: none; }
-    #install-guide .heading { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 8px; }
-    #install-guide ol { margin: 0 0 12px; padding-left: 1.4em; }
-    #install-guide li { margin: 4px 0; }
-    #install-guide .note { max-width: none; margin: 0 0 8px; }
-    #install-guide .actions { text-align: center; margin-top: 16px; padding-bottom: 24px; }
-    button.plain { background: transparent; color: #1c5cab; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="인사고과">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="근거로 평가하는 개인용 인사고과 앱. 서버 없이 이 기기에만 저장됩니다.">
+<title>인사고과 · 개인용</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="app.css">
+<script type="module" src="js/app.js"></script>
 </head>
 <body>
-  <div id="views"></div>
-  <div id="busy"></div>
-  <div id="splash">
-    <img src="icons/icon-192.png" alt="">
-    <div class="title">인사고과 체험판</div>
-    <div id="status" role="status">불러오는 중…</div>
-    <div class="bar"><span id="progress"></span></div>
-    <div class="note">처음 한 번은 앱 파일(약 24MB)을 받습니다. 그 뒤로는 인터넷 없이 열리고,
-      입력한 자료는 이 기기에만 저장됩니다.</div>
-    <div id="install-guide" hidden>
-      <div class="heading">홈 화면에 추가해서 쓰세요</div>
-      <ol>
-        <li><b>[공유]</b> 버튼(네모에서 화살표가 위로 나온 모양)을 누릅니다. 안 보이면 <b>[⋯]</b>를 먼저 누릅니다.</li>
-        <li>목록을 아래로 내려 <b>[홈 화면에 추가]</b>를 누르고, <b>[추가]</b>를 누릅니다.</li>
-        <li>홈 화면에 생긴 <b>인사고과</b> 아이콘으로 엽니다. 앱 파일(약 24MB)은 거기서 한 번 받습니다.</li>
-      </ol>
-      <p class="note">아이폰은 Safari와 홈 화면 앱이 저장 공간을 따로 씁니다. 여기서 앱 파일을 받으면 아이콘으로 열 때
-        다시 받아야 하고, 여기서 입력한 자료도 아이콘 앱에는 보이지 않습니다.</p>
-      <p class="note">이미 추가했다면 홈 화면의 아이콘으로 여세요. [공유]에 [홈 화면에 추가]가 없으면 Safari로 이 주소를 여세요.</p>
-      <div class="actions"><button id="stay" type="button" class="plain">여기서 그냥 쓰기</button></div>
-    </div>
-    <button id="retry" type="button" hidden>다시 시도</button>
-  </div>
-  <div id="update" hidden><span>새 버전이 준비됐습니다.</span><button type="button">지금 반영</button></div>
-  <script src="shell.js"></script>
+<div id="app">
+  <header class="topbar" id="topbar"><span class="side"></span><h1>인사고과</h1><span class="side"></span></header>
+  <main id="view"><p class="boot">불러오는 중…</p></main>
+  <nav class="tabbar" id="tabbar" aria-label="메뉴"></nav>
+</div>
+<div id="update" class="update" hidden><span>새 버전이 있습니다.</span><button type="button">지금 반영</button></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<noscript><p class="boot">이 앱은 자바스크립트가 켜져 있어야 동작합니다.</p></noscript>
 </body>
 </html>
