@@ -2,7 +2,7 @@
    VERSION·FILES 는 offline/build.py 가 채운다. 새 버전은 화면의 [지금 반영]을 누르거나 앱을 다시 열 때 반영된다. */
 'use strict';
 
-var VERSION = "c71c3fcb6f0b";
+var VERSION = "9c531c090e8c";
 var FILES = [
  "./",
  "version.json",

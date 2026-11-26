@@ -19,6 +19,8 @@
   var busyBar = document.getElementById('busy');
   var retryButton = document.getElementById('retry');
   var updateBox = document.getElementById('update');
+  var installGuide = document.getElementById('install-guide');
+  var stayButton = document.getElementById('stay');
 
   var worker = null;
   var sequence = 0;
@@ -370,8 +372,47 @@
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {});
   }
 
+  // ------------------------------------------------------------ 아이폰: 홈 화면에 먼저 추가
+  // 아이폰·아이패드는 홈 화면 아이콘으로 연 앱과 Safari가 저장 공간을 따로 쓴다.
+  // Safari에서 앱 파일을 받아도 아이콘으로 열면 다시 받아야 하고, 입력한 자료도 따로 남는다.
+  // 그래서 Safari로 처음 열면 파일을 받기 전에 홈 화면에 추가하라는 안내부터 보여 준다.
+  var STAY_KEY = 'hr-eval-stay-in-browser';
+
+  function isAppleMobile() {
+    var agent = navigator.userAgent;
+    return /iPhone|iPad|iPod/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1);  // 아이패드는 맥처럼 보인다
+  }
+
+  function isHomeScreenApp() {
+    return navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  }
+
+  function needsHomeScreenFirst() {
+    if (!isAppleMobile() || isHomeScreenApp()) return false;
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) return false;  // 이 브라우저에 이미 설치했다
+    try {
+      return localStorage.getItem(STAY_KEY) !== 'yes';  // [여기서 그냥 쓰기]를 고른 적이 있으면 다시 묻지 않는다
+    } catch (error) {
+      return true;
+    }
+  }
+
+  function showHomeScreenGuide() {
+    splash.classList.add('guide');
+    installGuide.hidden = false;
+    return new Promise(function (resolve) {
+      stayButton.addEventListener('click', function () {
+        try { localStorage.setItem(STAY_KEY, 'yes'); } catch (error) { /* 저장하지 못해도 이번에는 진행한다 */ }
+        installGuide.hidden = true;
+        splash.classList.remove('guide');
+        resolve();
+      }, { once: true });
+    });
+  }
+
   async function start() {
     try {
+      if (needsHomeScreenFirst()) await showHomeScreenGuide();
       await prepareOffline();
       setStatus('준비 중…', 0);
       var version = '';
